@@ -2,12 +2,21 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import ackblue from '../../../public/ackblue.png'
 
 export default function LoginPage() {
   const router = useRouter();
+  
+  // log in state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // page content state 
+  const [teamName] = useState('Your team');
+
+
+  // log in logic
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // TODO: Implement login logic here
@@ -19,8 +28,16 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-base-100">
       <div className="w-full max-w-md">
+        <div className='flex items-center justify-center'>
+          <Image
+            className="w-[120px] mb-5"
+            src={ackblue}
+            alt="Team logo"
+          />
+        </div>
+
         <h1 className="text-4xl font-bold text-base-content text-center mb-5">
-            Your team
+            {teamName}
         </h1>
 
         <p className='text-2xl font-semibold text-base-content text-center mb-12'>
