@@ -161,7 +161,7 @@ export default function Dashboard() {
             </div>
 
             {/* Central Column */}
-            <div className='w-1/2 flex flex-col justify-between p-4'>
+            <div className='w-4/6 lg:w-1/2 flex flex-col justify-between p-4'>
               {stages.map((stage, index) => (
                 <div 
                 key={index} 
