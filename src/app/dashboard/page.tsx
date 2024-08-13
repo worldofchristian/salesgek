@@ -1,5 +1,8 @@
-import React, { useMemo } from 'react';
-import { FaAngleDoubleRight, FaPencilAlt } from 'react-icons/fa';
+'use client';
+
+import React, { useMemo, useState } from 'react';
+import { FaAngleDoubleRight, FaPencilAlt, FaPlus } from 'react-icons/fa';
+import DashboardModal from './DashboardModal';
 
 // Linear interpolation
 function interpolate(start: number, end: number, steps: number) {
@@ -32,11 +35,14 @@ function movingAverage(data: number[], windowSize: number) {
 }
 
 export default function Dashboard() {
-  const stages = useMemo(() => [
-    { label: 'Awaiting response', count: 87, color: 'rgb(59, 130, 246)' },
-    { label: 'Contacted', count: 32, color: 'rgb(147, 197, 253)' },
-    { label: 'Demo out', count: 5, color: 'rgb(59, 130, 246)' },
-  ], []);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<{ label: string; count: number; color: string } | null>(null);
+  const [stages, setStages] = useState([
+    { label: 'Message out', count: 87, color: 'rgb(59, 130, 246)' },
+    { label: 'Contacted', count: 17, color: 'rgb(147, 197, 253)' },
+    { label: 'Demo out', count: 8, color: 'rgb(59, 130, 246)' },
+    { label: 'Sold', count: 4, color: 'rgb(59, 130, 246)' },
+  ]);
   
   const interpolatedData = useMemo(() => {
     const result = [];
@@ -63,7 +69,7 @@ export default function Dashboard() {
     }
   
     // Moving average smoothing
-    const windowSize = 1000; // control smoothness
+    const windowSize = 20; // control smoothness
     const smoothedValues = movingAverage(result.map(d => d.value), windowSize);
     
     return result.map((d, i) => ({
@@ -81,101 +87,122 @@ export default function Dashboard() {
     isLeft: boolean;
   }
   
-  const ProgressBar = ({ value, maxValue, color, isLeft }: ProgressBarProps) => (
+  const ProgressBar = ({ value, maxValue, color, isLeft }: ProgressBarProps) => {
+  const widthPercentage = (value / maxValue) * 100;
+
+  return (
     <div className={`h-1 w-full ${isLeft ? 'flex justify-end' : ''}`}>
       <div
         className={`h-full ${isLeft ? 'rounded-l-full' : 'rounded-r-full'}`}
-        style={{ width: `${(value / maxValue) * 100}%`, backgroundColor: color }}
+        style={{ width: `${widthPercentage}%`, backgroundColor: color }}
       ></div>
     </div>
   );
+};
+
+  const handleOpenModal = (stage?: { label: string; count: number; color: string }) => {
+    setSelectedStage(stage || null);
+    setModalOpen(true);
+  };
+
+  const handleSaveStage = (stageData: { label: string; count: number; color: string }) => {
+    if (selectedStage) {
+      // Editing existing stage
+      setStages(stages.map(stage => 
+        stage.label === selectedStage.label ? stageData : stage
+      ));
+    } else {
+      // Adding new stage
+      setStages([...stages, stageData]);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center bg-base-100">
-      <div className='flex flex-col items-center justify-center w-full max-w-7xl py-12'>
-        <select className='select select-bordered w-40 rounded-full'>
-          <option>Funnel 1</option>
-          <option>Funnel 2</option>
-        </select>
+    <>
+    {modalOpen ? 
+      <DashboardModal
+      isOpen={modalOpen}
+      onClose={() => setModalOpen(false)}
+      data={selectedStage || undefined}
+      onSave={handleSaveStage}
+      />
+      :
+      <div className="flex items-center justify-center bg-base-100">
+        <div className='flex flex-col items-center justify-center w-full max-w-7xl'>
+          <select className='select select-bordered w-40 rounded-full mt-10'>
+            <option>Funnel 1</option>
+            <option>Funnel 2</option>
+          </select>
 
-        <button className='btn btn-outline btn-sm rounded-full w-24 mt-4'>
-          <div className='flex flex-row items-center'>
-            Edit
-            <FaPencilAlt className='ml-2' />
-          </div>
-        </button>
+          <div className='flex flex-row mt-4 gap-2'>
+            <button className='btn btn-outline btn-sm rounded-xl'>
+              Edit
+              <FaPencilAlt className='ml-2' />
+            </button>
 
-        <div className='flex flex-row w-full mt-10 p-4'>
-          {/* Left Distribution */}
-          <div className='w-1/4 space-y-0.5'>
-            {interpolatedData.map((data, index) => (
-              <ProgressBar
-                key={index}
-                value={data.value}
-                maxValue={maxValue}
-                color={data.color}
-                isLeft={true}
-              />
-            ))}
-          </div>
-
-          {/* Central Column */}
-          <div className='w-1/2 flex flex-col justify-between p-4'>
-            {stages.map((stage, index) => (
-              <div key={index} className='flex flex-col items-center justify-center text-center text-base-content'>
-                <p className='text-2xl font-semibold mb-2'>{stage.label}</p>
-                <p className='text-4xl font-bold'>
-                  {stage.count}
-                  <span className='text-lg font-normal ml-2'>active</span>
-                </p>
-                <button className='btn btn-outline btn-sm rounded-full w-32 mt-4'>
-                  <div className='flex flex-row items-center'>
-                    Open
-                    <FaAngleDoubleRight className='ml-2' />
-                  </div>
-                </button>
-              </div>
-            ))}
+            <button className='btn btn-neutral btn-sm rounded-xl'>
+              New
+              <FaPlus className='ml-2' />
+            </button>
           </div>
 
-          {/* Right Distribution */}
-          <div className='w-1/4 space-y-0.5'>
-            {interpolatedData.map((data, index) => (
-              <ProgressBar
-                key={index}
-                value={data.value}
-                maxValue={maxValue}
-                color={data.color}
-                isLeft={false}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className='flex flex-col w-72 lg:w-4/6 mt-10'>
-          <div className='flex flex-row justify-between items-center'>
-            <p className='text-3xl lg:text-4xl'>&#x1F60E;</p>
-
-            <div className='flex flex-col items-center'>
-              <h1 className='text-2xl font-semibold text-base-content mb-2'>Sold</h1>
-
-              <p className='text-4xl font-bold text-base-content'>
-                  12
-                  <span className='text-lg font-normal text-base-content ml-2'>sales</span>
-                </p>
-
-                <button className='btn btn-outline btn-sm rounded-full w-32 mt-4'>
-                  <div className='flex flex-row items-center'>
-                    Open
-                    <FaAngleDoubleRight className='ml-2' />
-                  </div>
-                </button>
+          <div className='flex flex-row w-full mt-10 p-4'>
+            {/* Left Distribution */}
+            <div className='w-1/4 space-y-0.5'>
+              {interpolatedData.map((data, index) => (
+                <ProgressBar
+                  key={index}
+                  value={data.value}
+                  maxValue={maxValue}
+                  color={data.color}
+                  isLeft={true}
+                />
+              ))}
             </div>
 
-            <p className='text-3xl lg:text-4xl'>&#x1F60E;</p>
+            {/* Central Column */}
+            <div className='w-1/2 flex flex-col justify-between p-4'>
+              {stages.map((stage, index) => (
+                <div 
+                key={index} 
+                className='flex flex-col items-center justify-center text-center text-base-content'
+                >
+                  <p className='text-2xl font-semibold mb-2'>{stage.label}</p>
+
+                  <p className='text-4xl font-bold'>
+                    {stage.count}
+                    <span className='text-lg font-normal ml-2'>{stage.label == 'Sold' ? 'sales' : 'active'}</span>
+                  </p>
+
+                  <button 
+                  className='btn btn-outline btn-sm rounded-full w-32 mt-4'
+                  onClick={() => handleOpenModal(stage)}
+                  >
+                    <div className='flex flex-row items-center'>
+                      Open
+                      <FaAngleDoubleRight className='ml-2' />
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Right Distribution */}
+            <div className='w-1/4 space-y-0.5'>
+              {interpolatedData.map((data, index) => (
+                <ProgressBar
+                  key={index}
+                  value={data.value}
+                  maxValue={maxValue}
+                  color={data.color}
+                  isLeft={false}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    }
+    </>
   );
 }
