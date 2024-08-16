@@ -38,10 +38,10 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<{ label: string; count: number; color: string } | null>(null);
   const [stages, setStages] = useState([
-    { label: 'Message out', count: 87, color: 'rgb(59, 130, 246)' },
-    { label: 'Contacted', count: 17, color: 'rgb(147, 197, 253)' },
-    { label: 'Demo out', count: 8, color: 'rgb(59, 130, 246)' },
-    { label: 'Sold', count: 4, color: 'rgb(59, 130, 246)' },
+    { label: 'Message out', count: 21, color: 'rgb(59, 130, 246)' },
+    { label: 'Contacted', count: 14, color: 'rgb(147, 197, 253)' },
+    { label: 'Demo out', count: 3, color: 'rgb(59, 130, 246)' },
+    { label: 'Sold', count: 2, color: 'rgb(59, 130, 246)' },
   ]);
   
   const interpolatedData = useMemo(() => {
